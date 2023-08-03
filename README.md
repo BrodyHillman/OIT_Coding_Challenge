@@ -11,3 +11,8 @@ Or view the source code and screenshots as well as my limited documentation on t
 Please let me know if you have any difficulty accessing the project.
 
 Thank you so much!
+
+
+Resources:
+https://developers.google.com/apps-script/reference
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
