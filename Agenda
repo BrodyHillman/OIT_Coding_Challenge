@@ -1,7 +1,10 @@
 1. Create Gethub Repo
 2. Set up Google Workspace environment
-3. Format interface (Goolge Sheets)
+3. Format interface (Google Sheets)
 4. Create code framework
 5. Program common functions
+  a. isValid
+  b. startGame
+  c. computerTurn
 6. Create game end function
 7. (If time) Develop a more advanced computer player
