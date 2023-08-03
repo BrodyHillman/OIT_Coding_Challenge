@@ -1,0 +1,288 @@
+// Get the spreadsheet ui for prompting the user
+const ui = SpreadsheetApp.getUi()
+
+// Get the range of the START Cell
+const startCell = SpreadsheetApp.getActiveSheet().getRange(2, 6)
+
+// Trigger on a selection change and evaluate the selection
+function onSelectionChange(e) {
+  Logger.log(e)
+
+  // Get the range of the cell selected
+  const selectionRange = e.range.getCell(1, 1)
+  Logger.log(selectionRange.getColumn())
+
+  /** Check if there is a game in progress */
+  if (startCell.getValue() == "PLAY") {
+    Logger.log("No Game In Progress")
+
+    /** If there is no game in progress and the selection is the PLAY button, begin a new game */
+    if (selectionRange.getRow() == 2 && selectionRange.getColumn() == 6) {
+      Logger.log("Starting New Game")
+      startGame(startCell)
+    }
+  } else if (startCell.getValue() == "STOP") {
+    Logger.log("Game in Progress")
+
+    if (selectionRange.getRow() == 2 && selectionRange.getColumn() == 6) {
+      Logger.log("Stopping game")
+      stopGame()
+      SpreadsheetApp.getActiveSheet().getRange(1, 1).activate()
+      return
+    }
+
+    /** If there is a game in progress, evaluate the selection to determine if it is valid */
+    if (isValid(selectionRange)) {
+
+      /** If the selection is valid, set the selection value to x and check for game end conditions */
+      selectionRange.setValue("X")
+      if (gameEnd()) {
+        Logger.log("it work")
+        return
+      }
+
+      /** If the game continues, take the computer's turn and check for game end conditions */
+      computerTurn()
+      if (gameEnd()) {
+        Logger.log("it work 2")
+        return
+      }
+    }
+
+  } else {
+    Logger.log("The START Cell appears to have broken")
+  }
+
+}
+
+// Begin a game of Tic Tac Toe
+function startGame() {
+
+  // Set the PLAY Cell to STOP
+  startCell.setValue("STOP")
+  startCell.setBackground("#f4cccc")
+
+  // Ask the user if they would like to go first
+  const response = ui.alert("Tic Tac Toe", "Welcome to Tic Tac Toe!\nWould you like to go first?", ui.ButtonSet.YES_NO)
+
+  // If the user says no, take a turn for the computer
+  if (response == ui.Button.NO) {
+    computerTurn()
+  }
+}
+
+// Stop the game
+function stopGame() {
+  startCell.setValue("PLAY")
+  startCell.setBackground("#d9ead3")
+  clearBoard()
+}
+
+// Check to see if a range is a valid selection
+function isValid(range) {
+
+  // Check if the range is within bounds (rows 2-4, columns 2-4)
+  const validRows = [2, 3, 4]
+  const validColumns = [2, 3, 4]
+  if (!validColumns.includes(range.getColumn()) || !validRows.includes(range.getRow())) {
+    Logger.log("Range is not within bounds")
+    ui.alert("Out of Bounds!", "Sorry, that cell is out of bounds. Try Again!", ui.ButtonSet.OK)
+    return false
+  }
+
+  // Check if the range is already filled
+  if (range.getValue()) {
+    Logger.log("Range is already filled")
+    return false
+  }
+
+  return true
+
+}
+
+// Take a turn for the computer
+function computerTurn() {
+  let turnTaken = false
+
+  while (!turnTaken) {
+    const rowSelection = Math.floor(Math.random() * 3) + 2
+    const columnSelection = Math.floor(Math.random() * 3) + 2
+    const selection = SpreadsheetApp.getActiveSheet().getRange(rowSelection, columnSelection)
+
+    if (isValid(selection)) {
+      selection.setValue("O")
+      turnTaken = true
+    }
+  }
+}
+
+// Clear the board
+function clearBoard() {
+  SpreadsheetApp.getActiveSheet().getRange(2, 2, 3, 3).clear({ contentsOnly: true })
+}
+
+// Check for game end conditions
+function gameEnd() {
+
+  // Get the current game board
+  const currentBoard = SpreadsheetApp.getActiveSheet().getRange(2, 2, 3, 3).getValues()
+
+  let win = false
+
+  // Check for any horizontal wins
+  currentBoard.forEach(row => {
+    let xCounter = 0
+    let oCounter = 0
+    row.forEach(value => {
+      if (value == "X") {
+        xCounter++
+      }
+      if (value == "O") {
+        oCounter++
+      }
+    })
+    if (xCounter >= 3) {
+      Logger.log("Player Horizontal Win")
+      stopGame()
+      const response = ui.alert("Player WINS", "You win!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+      if (response == ui.Button.YES) {
+        startGame()
+      }
+      win = true
+    }
+    if (oCounter >= 3) {
+      Logger.log("Computer Horizontal Win")
+      stopGame()
+      const response = ui.alert("Computer WINS", "The computer won!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+      if (response == ui.Button.YES) {
+        startGame()
+      }
+      win = true
+    }
+  })
+
+  // Check for any vertical wins
+  for (i = 0; i < 3; i++) {
+    let xCounter = 0
+    let oCounter = 0
+    for (j = 0; j < 3; j++) {
+      let value = currentBoard[j][i]
+      if (value == "X") {
+        xCounter++
+      }
+      if (value == "O") {
+        oCounter++
+      }
+    }
+    if (xCounter >= 3) {
+      Logger.log("Player Vertical Win")
+      stopGame()
+      const response = ui.alert("Player WINS", "You win!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+      if (response == ui.Button.YES) {
+        startGame()
+      }
+      win = true
+    }
+    if (oCounter >= 3) {
+      Logger.log("Computer Vertical Win")
+      stopGame()
+      const response = ui.alert("Computer WINS", "The computer won!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+      if (response == ui.Button.YES) {
+        startGame()
+      }
+      win = true
+    }
+  }
+
+
+  // Check for any diagonal wins
+  let xCounter = 0
+  let oCounter = 0
+  for (i = 0, j = 0; i < 3; i++, j++) {
+    let value = currentBoard[i][j]
+    if (value == "X") {
+      xCounter++
+    }
+    if (value == "O") {
+      oCounter++
+    }
+  }
+  if (xCounter >= 3) {
+    Logger.log("Player Diagonal Win")
+    stopGame()
+    const response = ui.alert("Player WINS", "You win!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+    if (response == ui.Button.YES) {
+      startGame()
+    }
+    win = true
+  }
+  if (oCounter >= 3) {
+    Logger.log("Computer Diagonal Win")
+    stopGame()
+    const response = ui.alert("Computer WINS", "The computer won!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+    if (response == ui.Button.YES) {
+      startGame()
+    }
+    win = true
+  }
+
+  xCounter = 0
+  oCounter = 0
+  for (i = 0, j = 2; i < 3; i++, j--) {
+    let value = currentBoard[i][j]
+    if (value == "X") {
+      xCounter++
+    }
+    if (value == "O") {
+      oCounter++
+    }
+  }
+  if (xCounter >= 3) {
+    Logger.log("Player Diagonal Win")
+    stopGame()
+    const response = ui.alert("Player WINS", "You win!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+    if (response == ui.Button.YES) {
+      startGame()
+    }
+    win = true
+  }
+  if (oCounter >= 3) {
+    Logger.log("Computer Diagonal Win")
+    stopGame()
+    const response = ui.alert("Computer WINS", "The computer won!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+    if (response == ui.Button.YES) {
+      startGame()
+    }
+    win = true
+  }
+
+  if (win) {
+    return true
+  }
+
+  // Check if all the spaces are filled
+  let emptySpace = false
+  currentBoard.forEach(row => {
+    row.forEach(value => {
+      if (!value) {
+        Logger.log("Game Continues!")
+        emptySpace = true
+      }
+    })
+  })
+  if (!emptySpace) {
+    stopGame()
+    const response = ui.alert("TIE", "Tie game!\nDo you want to play again?", ui.ButtonSet.YES_NO)
+    if (response == ui.Button.YES) {
+      startGame()
+    }
+    return true
+  }
+
+}
+
+
+
+
+
+
