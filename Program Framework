@@ -1,0 +1,12 @@
+// When a new cell is selected(new cell value) {
+  // Check if there is a game in progress
+
+  // If there is no game in progress and the selection is the PLAY button, begin a new game
+
+  // If there is a game in progress, evaluate the selection to determine if it is valid
+
+  // If the selection is valid, set the selection value to x and check for game end conditions
+
+  // If the game continues, take the computer's turn and check for game end conditions
+
+// }
