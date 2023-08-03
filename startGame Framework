@@ -1,0 +1,9 @@
+// startGame() {
+
+  // Ask the user if they would like to go first
+
+  // If the user says no, take a turn for the computer
+
+  // Set gameInProgress to true
+
+// }
